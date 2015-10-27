@@ -1,4 +1,4 @@
-from busco_lib.busco_utils import extract, measuring
+from busco_lib.busco_utils import extract, measuring, shrink
 import shutil
 import os
 import subprocess

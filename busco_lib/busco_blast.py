@@ -1,29 +1,43 @@
 import os
 import subprocess
 from busco_lib.busco_utils import disentangle, gargantua
-from collections import deque
+from collections import deque, namedtuple
 
 __author__ = 'Luca Venturini'
 
-class Tblastn:
 
-    def __init__(self, line):
+class Tblastn(namedtuple("tblastn",
+                         ["is_header", "name", "scaff",
+                          "hitstart", "hitend", "posstart", "posend",
+                          "e_val", "sizer"])):
 
-        self.header = False
+    """Namedtuple derived directly from a TBlastN result line."""
+
+    def __new__(cls, line):
+        """
+        Overload of the parent class. It will format the line and return a
+         properly formatted named tuple object.
+        :param cls:
+        :param line:
+        :return:
+        """
+
+        attrs = dict.fromkeys(cls._fields, None)
+
         if line.startswith("#"):
-            self.line = None
-            self.is_header = True
-            return
-
-        self.line = line.strip().split()
-        self.name, self.scaff = self.line[:2]
-        (self.hitstart, self.hitend,
-        self.posstart, self.posend) = [int(_) for _ in self.line[6:10]]
-        # Reverse order if they are not correct
-        self.posstart, self.posend = sorted([self.posstart, self.posend])
-
-        self.e_val = float(self.line[10])
-        self.sizer = int(self.line[3])
+            attrs["is_header"] = True
+        else:
+            attrs["is_header"] = False
+            line = line.strip().split()
+            attrs["name"], attrs["scaff"] = line[:2]
+            attrs["sizer"] = int(line[3])
+            (attrs["hitstart"], attrs["hitend"],
+            attrs["posstart"], attrs["posend"]) = [int(_) for _ in line[6:10]]
+            # Reverse order if they are not correct
+            attrs["posstart"], attrs["posend"] = sorted(attrs["posstart"], attrs["posend"])
+            attrs["e_val"] = float(line[10])
+        # Create the named tuple
+        return super(Tblastn, cls).__new__(cls, **attrs)
 
 
 def do_genome_blast(args, flank):
@@ -40,10 +54,10 @@ def do_genome_blast(args, flank):
             dic[tblast_line.name] = [tblast_line.scaff]
             coords[tblast_line.name] = {}
             coords[tblast_line.name][tblast_line.scaff] = [tblast_line.posstart,
-                                             tblast_line.posend,
-                                             deque([[tblast_line.hitstart,
-                                                     tblast_line.hitend]]),
-                                             tblast_line.sizer]
+                                                           tblast_line.posend,
+                                                           deque([[tblast_line.hitstart,
+                                                                   tblast_line.hitend]]),
+                                                           tblast_line.sizer]
         # get just the top3 scoring regions
         elif tblast_line.scaff not in dic[tblast_line.name] and len(dic[tblast_line.name]) < 3:
             dic[tblast_line.name].append(tblast_line.scaff)
@@ -97,6 +111,7 @@ def do_genome_blast(args, flank):
                       coords[coord][contig][1] + flank,
                       sep="\t", file=out)
     return dic
+
 
 def do_transcriptome_blast(args, flank):
     print('*** Getting coordinates for candidate transcripts! ***')
@@ -176,6 +191,7 @@ def do_transcriptome_blast(args, flank):
             pass
     totalbuscos = len(list(score_dic.keys()))
     return transdic, totalbuscos
+
 
 def do_blast_step(args, flank):
 

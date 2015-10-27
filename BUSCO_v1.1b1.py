@@ -43,6 +43,7 @@ from busco_lib.busco_augustus import do_augustus_step_3
 from busco_lib.busco_hmmer import do_hmmer_step4
 from busco_lib.busco_categorize import categorize
 from busco_lib.busco_summary import summarise
+from busco_lib.busco_retraining import retraining
 
 
 def main():
@@ -71,7 +72,7 @@ def main():
     (score_dic, leng_dic, sd_dic,
      complete, frag, done, cc, fcc, mcc, unique) = categorize(args, score_dic)
     summarise(args, genome_dic, totalbuscos, mcc, cc, fcc, unique, score_dic, complete, frag)
-
+    retraining(args, totalbuscos, genome_dic, score_dic)
 
 
 
