@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+
+"""
+This module performs the final printing of the results of BUSCO.
+"""
+
 import os
 from busco_lib.busco_utils import shrink, measuring
 
@@ -6,19 +12,33 @@ __author__ = 'Luca Venturini'
 
 def summarise(args, genome_dic, totalbuscos, mcc, cc, fcc, unique, score_dic, complete, frag):
 
+    # TODO: write a proper docstring
+    """
+    :param args:
+    :param genome_dic:
+    :param totalbuscos:
+    :param mcc:
+    :param cc:
+    :param fcc:
+    :param unique:
+    :param score_dic:
+    :param complete:
+    :param frag:
+    :return:
+    """
+
     # summarize results, print and write to output files
     summary = open('short_summary_'+args['abrev'], 'w')
     if args.mode == 'OGS':
         print('Total complete BUSCOs found in assembly (<2 sigma) :  {0}\t({1} duplicated).'.format(
               len(set(cc))+len(set(mcc)),
-              len(mcc))
-             )
+              len(mcc)))
         print('Total BUSCOs partially recovered (>2 sigma) :  {0}'.format((len(fcc))))
     else:
         print('Total complete BUSCOs found in assembly (<2 sigma) :  {0}\t({1} duplicated).' .format(
               len(set(unique)),
               len(mcc))
-        )
+              )
         print('Total BUSCOs partially recovered (>2 sigma) :  {0}'.format(fcc))
     print('Total groups searched: {0}'.format(totalbuscos))
     try:
@@ -28,10 +48,9 @@ def summarise(args, genome_dic, totalbuscos, mcc, cc, fcc, unique, score_dic, co
         else:
             print('Total BUSCOs not found: {0}'.format(
                 totalbuscos-(len(set(cc))+len(set(mcc))+len(fcc))))
-    except:
+    except (TypeError, ValueError):
         print('Total BUSCOs not found:  {0}'.format(totalbuscos-(len(set(cc)) + len(fcc))))
-    
-    
+
     summary.write('# Summarized BUSCO benchmarking for file: {0}\n'.format(args["genome"]))
     summary.write('#BUSCO was run in mode: {0}\n\n'.format(args.mode))
     if args.mode != 'OGS' and args.mode != 'trans':
@@ -85,7 +104,7 @@ def summarise(args, genome_dic, totalbuscos, mcc, cc, fcc, unique, score_dic, co
     
     summary.write('\t{0}\tTotal BUSCO groups searched\n'.format(totalbuscos))
     summary.close()
-    summary = open('full_table_%s' % args['abrev'],'w')
+    summary = open('full_table_%s' % args['abrev'], 'w')
     # write correct header
     if args.mode == 'genome' or args.mode == 'report':
         summary.write('# BUSCO_group\tStatus\tScaffold\tStart\tEnd\tBitscore\tLength\n')
@@ -94,18 +113,18 @@ def summarise(args, genome_dic, totalbuscos, mcc, cc, fcc, unique, score_dic, co
     elif args.mode == 'trans' or args.mode == 'transcriptome':
         summary.write('# BUSCO_group\tStatus\tTranscript\tBitscore\tLength\n')
     
-    temp = os.listdir(os.path.join(args.mainout, 'hmmer_output' ))
+    temp = os.listdir(os.path.join(args.mainout, 'hmmer_output'))
     done = []
     files = []
     for i in temp:
-        if i.endswith(('.out','.1','.2','.3')):
+        if i.endswith(('.out', '.1', '.2', '.3')):
             files.append(i)
     
     for i in files:
         if i.endswith('.out'):
             name = i[:-4]
             marker = 0
-        elif i.endswith(('.1','.2','.3')):
+        elif i.endswith(('.1', '.2', '.3')):
             name = i[:-6]
             marker = int(i[-1])-1
         f = open(os.path.join(args.mainout, 'hmmer_output/{0}'.format(i)))
@@ -119,14 +138,14 @@ def summarise(args, genome_dic, totalbuscos, mcc, cc, fcc, unique, score_dic, co
                 score.append(float(line[7]))
                 group = line[3]
                 prot = line[0]
-                tlen = int(line[2])
-                qlen = int(line[5])
-                prediction = line[0]
+                # tlen = int(line[2])
+                # qlen = int(line[5])
+                # prediction = line[0]
                 if prot not in hit_dic.keys() and float(line[7]) >= score_dic[group]:
                     hit_dic[prot] = [
                         [int(line[15]), int(line[16]), line[7]]
                     ]
-                elif float(line[7])>=score_dic[group]:
+                elif float(line[7]) >= score_dic[group]:
                     hit_dic[prot].append(
                         [int(line[15]), int(line[16]), line[7]]
                     )
@@ -204,7 +223,7 @@ def summarise(args, genome_dic, totalbuscos, mcc, cc, fcc, unique, score_dic, co
         f.close()
     summary.close()
 
-    f = open('full_table_%s' % args['abrev'],'r')
+    f = open('full_table_%s' % args['abrev'], 'r')
     lista = []
     for i in f:
         i = i.strip().split()
@@ -213,13 +232,13 @@ def summarise(args, genome_dic, totalbuscos, mcc, cc, fcc, unique, score_dic, co
     f.close()
 
     # get final list of missing buscos
-    out = open('missing_buscos_list_{0}'.format(args['abrev']),'w')
-    f = open('full_table_{0}'.format(args['abrev']),'a')
+    out = open('missing_buscos_list_{0}'.format(args['abrev']), 'w')
+    f = open('full_table_{0}'.format(args['abrev']), 'a')
     for i in score_dic.keys():
         if i in lista:
             pass
         else:
             out.write(i+'\n')
-            f.write('%s\tMissing\n' % (i))
+            f.write('%s\tMissing\n' % i)
     out.close()
     f.close()

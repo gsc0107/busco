@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+
+"""
+This module contains the instructions needed to launch and analyse BLAST results.
+"""
+
 import os
 import subprocess
 from busco_lib.busco_utils import disentangle, gargantua
@@ -18,7 +24,9 @@ class Tblastn(namedtuple("tblastn",
         Overload of the parent class. It will format the line and return a
          properly formatted named tuple object.
         :param cls:
-        :param line:
+        :param line: the line to turn into a named tuple.
+        :type line: str
+
         :return:
         """
 
@@ -31,8 +39,8 @@ class Tblastn(namedtuple("tblastn",
             line = line.strip().split()
             attrs["name"], attrs["scaff"] = line[:2]
             attrs["sizer"] = int(line[3])
-            (attrs["hitstart"], attrs["hitend"],
-            attrs["posstart"], attrs["posend"]) = [int(_) for _ in line[6:10]]
+            attrs["hitstart"], attrs["hitend"] = int(line[6]), int(line[7])
+            attrs["posstart"], attrs["posend"] = int(line[8]), int(line[9])
             # Reverse order if they are not correct
             attrs["posstart"], attrs["posend"] = sorted(attrs["posstart"], attrs["posend"])
             attrs["e_val"] = float(line[10])
@@ -41,6 +49,18 @@ class Tblastn(namedtuple("tblastn",
 
 
 def do_genome_blast(args, flank):
+
+    # TODO: understand the flank parameter
+
+    """
+    This function calls and analyses the BLAST results according to the parameters provided by the
+    command line options.
+    :param args: the argparse Namespace.
+
+    :param flank: a flanking value to add to the blast.
+    :type flank: int
+    :return:
+    """
 
     print('*** Getting coordinates for candidate regions! ***')
     tblast_file = open('%s_tblastn' % args['abrev'])  # open input file
@@ -71,19 +91,24 @@ def do_genome_blast(args, flank):
             # starts before, and withing 50kb of current position
             if (tblast_line.posstart < coords[tblast_line.name][tblast_line.scaff][0] and
                     coords[tblast_line.name][tblast_line.scaff][0] - tblast_line.posstart <= 50000):
+
                 coords[tblast_line.name][tblast_line.scaff][0] = tblast_line.posstart
-                coords[tblast_line.name][tblast_line.scaff][2].append([tblast_line.hitstart,
-                                                                       tblast_line.hitend])
+
+                coords[tblast_line.name][tblast_line.scaff][2].append(
+                    [tblast_line.hitstart, tblast_line.hitend])
+
             # ends after and within 50 kbs
             if (tblast_line.posend > coords[tblast_line.name][tblast_line.scaff][1] and
-                        tblast_line.posend-coords[tblast_line.name][tblast_line.scaff][1] <= 50000):
+                    tblast_line.posend-coords[tblast_line.name][tblast_line.scaff][1] <= 50000):
+
                 coords[tblast_line.name][tblast_line.scaff][1] = tblast_line.posend
                 coords[tblast_line.name][tblast_line.scaff][3] = tblast_line.hitend
-                coords[tblast_line.name][tblast_line.scaff][2].append([tblast_line.hitstart,
-                                                                       tblast_line.hitend])
+                coords[tblast_line.name][tblast_line.scaff][2].append(
+                    [tblast_line.hitstart, tblast_line.hitend])
+
             # starts inside current coordinates
             elif (coords[tblast_line.name][tblast_line.scaff][0] < tblast_line.posstart
-                      < coords[tblast_line.name][tblast_line.scaff][1]):
+                    < coords[tblast_line.name][tblast_line.scaff][1]):
                 # if ending inside, just add alignment positions to deque
                 if tblast_line.posend < coords[tblast_line.name][tblast_line.scaff][1]:
                     coords[tblast_line.name][tblast_line.scaff][2].append([tblast_line.hitstart,
@@ -113,7 +138,14 @@ def do_genome_blast(args, flank):
     return dic
 
 
-def do_transcriptome_blast(args, flank):
+def do_transcriptome_blast(args):
+
+    """
+    This function calls BLAST and analyses the results when we are analysing a transcriptome.
+    :param args: the argparse Namespace.
+    :return:
+    """
+
     print('*** Getting coordinates for candidate transcripts! ***')
     f = open('%s_tblastn' % args['abrev'])  # open input file
     # transdic = None
@@ -152,9 +184,9 @@ def do_transcriptome_blast(args, flank):
     for i in f:
         if i.startswith('>'):
             i = i.strip().split()
-            i=i[0][1:]
+            i = i[0][1:]
             if i in scaff_list:
-                out=open('%s%s_.temp' % (i, args['abrev']), 'w')
+                out = open('%s%s_.temp' % (i, args['abrev']), 'w')
                 out.write('>%s\n' % i)
                 check = 1
             else:
@@ -166,8 +198,8 @@ def do_transcriptome_blast(args, flank):
     if os.path.exists('%stranslated_proteins' % args.mainout) is False:
         subprocess.call('mkdir %stranslated_proteins' % args.mainout,
                         shell=True)
-    files=os.listdir('.')
-    lista=[]
+    files = os.listdir('.')
+    lista = []
     for entry in files:
         if entry.endswith(args['abrev']+'_.temp'):
             lista.append(entry)
@@ -176,9 +208,8 @@ def do_transcriptome_blast(args, flank):
     for entry in lista:
         command = ["transeq", "-clean", "-frame", "6",
                    "-trim", "-sequence", entry,
-                   "-outseq", "{}.fas".format(
-                        args.mainout+'translated_proteins/'+entry.split(args['abrev'])[0]+'_ts'),
-                   ]
+                   "-outseq",
+                   "{}.fas".format(args.mainout+'translated_proteins/'+entry.split(args['abrev'])[0]+'_ts')]
         subprocess.call(command, shell=False)
     f2 = open('%s/scores_cutoff' % args.clade)  # open target scores file
     # Load dictionary of HMM expected scores and full list of groups
@@ -186,14 +217,21 @@ def do_transcriptome_blast(args, flank):
     for i in f2:
         i = i.strip().split()
         try:
-            score_dic[i[0]] = float(i[1])  # float [1] = mean value; [2] = minimum value
-        except:
+            score_dic[i[0]] = float(i[1])
+        except (ValueError, IndexError, KeyError):
             pass
     totalbuscos = len(list(score_dic.keys()))
     return transdic, totalbuscos
 
 
 def do_blast_step(args, flank):
+
+    """
+    Launcher of the BLAST analysis.
+    :param args: The argparse Namespace
+    :param flank: flank to be considered when analysing the genome.
+    :return:
+    """
 
     print('*** Running tBlastN ***')
     subprocess.call(["makeblastdb", "-in", args.genome,
@@ -209,6 +247,6 @@ def do_blast_step(args, flank):
     if args.mode in ("genome", "blast"):
         genome_dic = do_genome_blast(args, flank)
     elif args.mode in ("trans", "transcriptome"):
-        transdic, totalbuscos = do_transcriptome_blast(args, flank)
+        transdic, totalbuscos = do_transcriptome_blast(args)
 
     return genome_dic, transdic, totalbuscos

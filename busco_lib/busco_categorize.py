@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+
+"""
+This module performs the categorization of the hits found in the rest of the analysis.
+"""
+
 import os
 from busco_lib.busco_utils import measuring
 
@@ -5,6 +11,15 @@ __author__ = 'Luca Venturini'
 
 
 def categorize(args, score_dic):
+
+    # TODO: understand the parameters and the function of this method!
+    """
+    Main and sole function of the module.
+    :param args: argparse Namespace
+    :param score_dic:
+    :type score_dic: dict
+    :return:
+    """
 
     # Categorizing genes found in Complete; multi-copy and partial hits
     leng_dic = {}
@@ -17,7 +32,7 @@ def categorize(args, score_dic):
     mcc = []
     unique = []
     if args.mode in ("genome", "report", "hmmer") or args.mode != "OGS":
-        temp = os.listdir(os.path.join(args.mainout, 'hmmer_output' ))
+        temp = os.listdir(os.path.join(args.mainout, 'hmmer_output'))
         files = []
         for i in temp:
             if i.endswith(('.out', '.1', '.2', '.3')):
@@ -46,20 +61,20 @@ def categorize(args, score_dic):
                         if prot not in hit_dic.keys() and score >= score_dic[group]:
                             hit_dic[prot] = [[int(line[15]), int(line[16])]]
                         elif score >= score_dic[group]:
-                            hit_dic[prot].append([int(line[15]),int(line[16])])
+                            hit_dic[prot].append([int(line[15]), int(line[16])])
             length = measuring(hit_dic)
             try:		# get maximum length of the putative gene in question
                 if len(length) == 1:
                     length = length[0]
                 else:
                     length = max(length)+1
-                sigma=abs(leng_dic[group]-length)/sd_dic[group]
+                sigma = abs(leng_dic[group] - length)/sd_dic[group]
                 if sigma <= 2:
                     complete.append(entry)
                     cc.append(group)
                 elif sigma > 2:
                     frag.append(entry)
-            except:
+            except (IndexError, TypeError):
                 pass
         # check the multi hits
         for entry in complete:
@@ -111,9 +126,9 @@ def categorize(args, score_dic):
                     prot = line[0]
                     tlen = int(line[2])
                     qlen = int(line[5])
-                    prediction = line[0]
                     if group not in complete:
-                        complete[group]=[];frag[group]=[]
+                        complete[group] = []
+                        frag[group] = []
                     if tlen > 30 * qlen:
                         pass
                     else:
@@ -149,20 +164,20 @@ def categorize(args, score_dic):
                                 length])
                         elif sigma > 2:
                             frag[group].append(list(hit_dic.keys())[lengths.index(length)])
-            except:
+            except (IndexError, KeyError, ValueError, TypeError):
                 pass
         # check the multi hits
         for entry in complete:
             if len(complete[entry]) == 0:
                 pass
-            elif len(complete[entry]) == 1: # complete
+            elif len(complete[entry]) == 1:  # complete
                 cc.append(entry)
             elif len(complete[entry]) > 1:
                 mcc.append(entry)
         for entry in frag:
             if len(complete[entry]) != 0:
                 pass
-            elif frag[entry] != []:
+            elif frag[entry]:
                 fcc.append(entry)
 
     # This is BAD .... how many variables?!?

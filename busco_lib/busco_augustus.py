@@ -1,5 +1,9 @@
-import threading
-import queue
+#!/usr/bin/env python3
+
+"""
+This module contains the functions needed to perform Augustus.
+"""
+
 import time
 import os
 import subprocess
@@ -9,6 +13,12 @@ __author__ = 'Luca Venturini'
 
 
 def process_command(command):
+    """
+    Simple wrapper to call a command with subprocess and record/print the time.
+    :param command: the command to launch, as a string.
+    :type command: str
+    :return:
+    """
 
     print(time.ctime(), "Started command: {0}".format(command))
     subprocess.call(command)
@@ -17,7 +27,14 @@ def process_command(command):
 
 def do_augustus_step_3(args):
 
-    # Step-3
+    """
+    Third step of the augustus modelling.
+
+    :param args: the argparse Namespace.
+
+    :return:
+    """
+
     # Extract candidate contigs/scaffolds from genome assembly
     # (necessary because augustus doesn't handle multi-fasta files
     # when running on a specific target region)
@@ -29,8 +46,8 @@ def do_augustus_step_3(args):
         scaff_list = []
         for i in coord:
             i = i.strip().split()
-            if len(i)!=2:
-                dic[i[0]] = [i[1],i[2],i[3]]
+            if len(i) != 2:
+                dic[i[0]] = [i[1], i[2], i[3]]
                 if i[1] not in scaff_list:
                     scaff_list.append(i[1])
         f = open(args['genome'])
@@ -41,8 +58,8 @@ def do_augustus_step_3(args):
                 i = i.split()
                 i = i[0][1:]
                 if i in scaff_list:
-                    out = open('%s%s_.temp' % (i,args['abrev']),'w')
-                    out.write('>%s\n' % (i))
+                    out = open('%s%s_.temp' % (i, args['abrev']), 'w')
+                    out.write('>%s\n' % i)
                     check = 1
                 else:
                     check = 0
@@ -53,7 +70,6 @@ def do_augustus_step_3(args):
     # ################
 
     # ################
-
 
     # Step-4
     # Augustus search on candidate regions using the pre-built Block profiles (msa2prfl.pl)
@@ -67,13 +83,13 @@ def do_augustus_step_3(args):
             i = i.strip().split('\t')
             name = i[0]
             if name not in dic:
-                dic[name] = [[i[1],i[2],i[3]]]  # scaffold,start and end
+                dic[name] = [[i[1], i[2], i[3]]]  # scaffold,start and end
             elif name in dic:
                 dic[name].append([i[1], i[2], i[3]])
         strings = []
         for i in dic:
-            if len(dic[i])>1:
-                for z in range(0,len(dic[i])):
+            if len(dic[i]) > 1:
+                for z in range(0, len(dic[i])):
                     command = ["augustus",
                                "--proteinprofile={clade}/{prot_profile}".format(
                                    clade=args.clade,
@@ -81,7 +97,7 @@ def do_augustus_step_3(args):
                                "--predictionStart={0}".format(dic[i][z][1]),
                                "--predictionEnd={0}".format(dic[i][z][2]),
                                "--species={species}".format(species=args.target_species),
-                               "\"{scaffold}\"".format(scaffold=dic[i][z][0]+args['abrev']+'_.temp'),
+                               "\"{scaffold}\"".format(scaffold=dic[i][z][0] + args['abrev'] + '_.temp'),
                                ">",
                                "{output}".format(output=args.mainout+'augustus/'+i+'.out.'+str(z+1)),
                                "2>/dev/null"
@@ -110,5 +126,3 @@ def do_augustus_step_3(args):
 
         pool.close()
         pool.join()
-
-

@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+
+"""
+This module is focussed on calling and analysing HMMER data.
+"""
+
 import os
 import subprocess
 
@@ -5,6 +11,14 @@ __author__ = 'Luca Venturini'
 
 
 def extract_proteins(args):
+
+    # TODO: verify that the method actually does what I think it does.
+    """
+    This method (APPARENTLY) extracts the predicted proteins from the Augustus output file.
+    This is possible because Augustus puts the protein FASTA inside the GFF as comment.
+    :param args: the argparse Namespace.
+    :return:
+    """
 
     print('*** Extracting predicted proteins ***')
     files = os.listdir(os.path.join(args.mainout, 'augustus'))
@@ -62,6 +76,14 @@ def extract_proteins(args):
 
 
 def do_hmmer_step4(args, transdic):
+
+    # TODO: improve this stub!
+    """
+    This method is focussed on running HMMER
+    :param args:
+    :param transdic:
+    :return:
+    """
 
     # Run HMMer (genome mode)
     score_dic = {}
@@ -131,15 +153,12 @@ def do_hmmer_step4(args, transdic):
                 if group not in grouplist:
                     grouplist.append(group)
                     command = ["hmmsearch",
-                               "--domtblout", "{0}".format(
-                                        os.path.join(args.mainout,
-                                                     'hmmer_output',
-                                                     group)),
+                               "--domtblout",
+                               "{0}".format(os.path.join(args.mainout, 'hmmer_output', group)),
                                "-Z", args.Z,
                                "--cpu", args.cpus,
                                "{group_file}.hmm".format(
-                                    group_file=os.path.join(
-                                        args.clade, 'hmms', group)),
+                                   group_file=os.path.join(args.clade, 'hmms', group)),
                                "{input_file}".format(
                                    input_file=os.path.join(args.mainout,
                                                            "translated_proteins",
@@ -178,9 +197,9 @@ def do_hmmer_step4(args, transdic):
             i = i.strip().split()
             try:
                 score_dic[i[0]] = float(i[1]) 	# [1] = mean value; [2] = minimum value
-            except:
+            except (IndexError, KeyError, TypeError):
                 pass
-        totalbuscos = len(list(score_dic.keys()))
+        # totalbuscos = len(list(score_dic.keys()))
         for filename in files:
             name = filename[:-4]
             if name in score_dic:
@@ -197,21 +216,20 @@ def do_hmmer_step4(args, transdic):
                 command = " ".join(str(_) for _ in command)
                 subprocess.call(command, shell=True)
 
-
     # ##*******get list to be re-run
     if args.mode in ('genome', 'hmmer'):
         print('*** Parsing HMMER results ***')
         # Open the output file; if no name was specified the default name will be used
-        f2 = open(os.path.join(args.clade, 'scores_cutoff'))	# open target scores file
+        f2 = open(os.path.join(args.clade, 'scores_cutoff'))  # open target scores file
         # Load dictionary of HMM expected scores and full list of groups
         score_dic = {}
         for i in f2:
             i = i.strip().split()
             try:
                 score_dic[i[0]] = float(i[1])
-            except:
+            except (KeyError, IndexError, TypeError):
                 pass
-        totalbuscos = len(list(score_dic.keys()))
+        # totalbuscos = len(list(score_dic.keys()))
         f = open('coordinates_%s' % args['abrev'])
         dic = {}
         for i in f:

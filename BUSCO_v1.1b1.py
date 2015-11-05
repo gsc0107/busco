@@ -1,43 +1,34 @@
 #!/bin/python
 
-# BUSCO - Benchmarking sets of Universal Single-Copy Orthologs.
+"""
+BUSCO - Benchmarking sets of Universal Single-Copy Orthologs.
 
-# Copyright (C) 2015 E. Zdobnov lab: F. Simao Neto
-# <felipe.simao@unige.ch> based on code by R. Waterhouse.
+Copyright (C) 2015 E. Zdobnov lab: F. Simao Neto
+<felipe.simao@unige.ch> based on code by R. Waterhouse.
 
-# BUSCO is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+BUSCO is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-# BUSCO is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+BUSCO is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
-# Version 1.1c (may/15) - minor bug fixes
-
-#                        - lineages may be specified using the full path (e.g. -l /path/to/lineage)
-#                       - added threading support (signficant speed increase)
-#                       - added checks for the necessary programs before running BUSCO
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# -------------------------------------------------------------------------------#
+Version 1.1c (may/15) - minor bug fixes
 
-import os
+                       - lineages may be specified using the full path (e.g. -l /path/to/lineage)
+                      - added threading support (signficant speed increase)
+                      - added checks for the necessary programs before running BUSCO
+"""
+
 import sys
-import shutil
-from collections import deque
-import time
-import queue
-import threading
-import subprocess
 from busco_lib.busco_parser import busco_parser
-from busco_lib.busco_utils import measuring,extract,disentangle,gargantua,shrink
 from busco_lib.busco_blast import do_blast_step
 from busco_lib.busco_augustus import do_augustus_step_3
 from busco_lib.busco_hmmer import do_hmmer_step4
@@ -47,9 +38,11 @@ from busco_lib.busco_retraining import retraining
 
 
 def main():
-    # Get arguments
-    start_time = time.time()
-    transdic = {}  # ?
+    """
+    Main calling function.
+    :return:
+    """
+
     args = busco_parser(sys.argv[1:])
     flank = 5000
     if args.mode in ('genome', 'blast'):  # scalled flanks
@@ -74,5 +67,5 @@ def main():
     summarise(args, genome_dic, totalbuscos, mcc, cc, fcc, unique, score_dic, complete, frag)
     retraining(args, totalbuscos, genome_dic, score_dic)
 
-
-
+if __name__ == "__main__":
+    main()

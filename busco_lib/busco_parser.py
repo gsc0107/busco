@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+
+"""
+This module contains the command line parser for BUSCO.
+"""
+
 import argparse
 import subprocess
 import os
@@ -12,7 +18,8 @@ def to_cpu(string):
     Quick function to transform a string into the number of CPU cores to be used.
     It maxes out at the maximum number of cores physically present on the machine.
     :param string:
-    :return:
+    :return: counter
+    :rtype: int
     """
 
     return min(os.cpu_count(), max(1, int(string)))
@@ -20,12 +27,27 @@ def to_cpu(string):
 
 def to_evalue(string):
 
+    """
+    Simple function to convert a string into a positive float number (i.e. the evalue)
+    :param string: the string to convert
+    :return: the inferred number
+
+    :rtype: float
+    """
+
     evalue = float(string)
     if evalue < 0:
         raise TypeError("Evalue too low (less than 0)")
     return evalue
 
+
 def _parser():
+
+    """
+    This function creates the argparse argument parser used by the program.
+    :return: the parser.
+    :rtype: argparse.ArgumentParser
+    """
 
     usage = 'BUSCO_v1.0.py -in [SEQUENCE_FILE] -l [LINEAGE] -o [OUTPUT_NAME] [OTHER OPTIONS]'
 
@@ -73,73 +95,54 @@ def _parser():
                         help='''Force rewrting of existing files.
                         Must be used when output files with the provided name already exist.''')
     valid_species = [
-          'human',
-          'fly',
-          'generic',
-          'arabidopsis',
-          'brugia',
-          'aedes',
-          'tribolium',
-          'schistosoma',
-          'tetrahymena',
-          'galdieria',
-          'maize',
-          'toxoplasma',
-          'caenorhabditis',
-          '(elegans)',
-          'aspergillus_fumigatus',
-          'aspergillus_nidulans',
-          '(anidulans)',
-          'aspergillus_oryzae',
-          'aspergillus_terreus',
-          'botrytis_cinerea',
-          'candida_albicans',
-          'candida_guilliermondii',
-          'candida_tropicalis',
-          'chaetomium_globosum',
-          'coccidioides_immitis',
-          'coprinus',
-          'coprinus_cinereus',
-          'coyote_tobacco',
-          'cryptococcus_neoformans_gattii',
-          'cryptococcus_neoformans_neoformans_B',
-          'cryptococcus_neoformans_neoformans_JEC21',
-          '(cryptococcus)',
-          'debaryomyces_hansenii',
-          'encephalitozoon_cuniculi_GB',
-          'eremothecium_gossypii',
-          'fusarium_graminearum',
-          '(fusarium)',
-          'histoplasma_capsulatum',
-          '(histoplasma)',
-          'kluyveromyces_lactis',
-          'laccaria_bicolor',
-          'lamprey',
-          'leishmania_tarentolae',
-          'lodderomyces_elongisporus',
-          'magnaporthe_grisea',
-          'neurospora_crassa',
-          '(neurospora)',
-          'phanerochaete_chrysosporium',
-          '(pchrysosporium)',
-          'pichia_stipitis',
-          'rhizopus_oryzae',
-          'saccharomyces_cerevisiae_S288C',
-          'saccharomyces_cerevisiae_rm11-1a_1',
-          '(saccharomyces)',
-          'schizosaccharomyces_pombe',
-          'thermoanaerobacter_tengcongensis',
-          'trichinella',
-          'ustilago_maydis',
-          '(ustilago)',
-          'yarrowia_lipolytica',
-          'nasonia',
-          'tomato',
-          'chlamydomonas',
-          'amphimedon',
-          'pneumocystis',
-          'wheat',
-          'chicken']
+        'human', 'fly', 'generic',
+        'arabidopsis', 'brugia', 'aedes',
+        'tribolium', 'schistosoma', 'tetrahymena',
+        'galdieria', 'maize', 'toxoplasma',
+        'caenorhabditis', '(elegans)', 'aspergillus_fumigatus',
+        'aspergillus_nidulans', '(anidulans)', 'aspergillus_oryzae',
+        'aspergillus_terreus', 'botrytis_cinerea', 'candida_albicans',
+        'candida_guilliermondii', 'candida_tropicalis', 'chaetomium_globosum',
+        'coccidioides_immitis', 'coprinus', 'coprinus_cinereus',
+        'coyote_tobacco', 'cryptococcus_neoformans_gattii',
+        'cryptococcus_neoformans_neoformans_B',
+        'cryptococcus_neoformans_neoformans_JEC21',
+        '(cryptococcus)',
+        'debaryomyces_hansenii',
+        'encephalitozoon_cuniculi_GB',
+        'eremothecium_gossypii',
+        'fusarium_graminearum',
+        '(fusarium)',
+        'histoplasma_capsulatum',
+        '(histoplasma)',
+        'kluyveromyces_lactis',
+        'laccaria_bicolor',
+        'lamprey',
+        'leishmania_tarentolae',
+        'lodderomyces_elongisporus',
+        'magnaporthe_grisea',
+        'neurospora_crassa',
+        '(neurospora)',
+        'phanerochaete_chrysosporium',
+        '(pchrysosporium)',
+        'pichia_stipitis',
+        'rhizopus_oryzae',
+        'saccharomyces_cerevisiae_S288C',
+        'saccharomyces_cerevisiae_rm11-1a_1',
+        '(saccharomyces)',
+        'schizosaccharomyces_pombe',
+        'thermoanaerobacter_tengcongensis',
+        'trichinella',
+        'ustilago_maydis',
+        '(ustilago)',
+        'yarrowia_lipolytica',
+        'nasonia',
+        'tomato',
+        'chlamydomonas',
+        'amphimedon',
+        'pneumocystis',
+        'wheat',
+        'chicken']
 
     parser.add_argument('-sp', '--species', default='generic',
                         metavar='species',
@@ -168,6 +171,13 @@ def _parser():
 
 def busco_parser(command_argv):
 
+    """
+    Wrapper around the parser. It calls the main function using the command_argv as sole argument.
+    :param command_argv: the sys.argv list.
+    :type command_argv: list
+    :return: the Namespace from argparse.
+    """
+
     parser = _parser()
     args = parser.parse_args(command_argv)  # parse the arguments
     args = check_args(args)
@@ -178,11 +188,10 @@ def check_args(args):
 
     """
     Function to check that the arguments from the command line pass sanity checks.
-    :param args:
+    :param args: the argparse Namespace.
     :return:
     """
 
-    # print(args)
     args.mainout = os.path.abspath(
         os.path.join(".", "run_{0}".format(args["abrev"]))
     )
@@ -272,11 +281,10 @@ def check_args(args):
         raise SystemExit(error)
 
     if (args.mode == 'genome' and
-                os.access(os.environ.get('AUGUSTUS_CONFIG_PATH'), os.W_OK) is False):
+            os.access(os.environ.get('AUGUSTUS_CONFIG_PATH'), os.W_OK) is False):
         error = """Error: Cannot write to Augustus directory,
         please make sure you have write permissions to {}
-        """.format(
-            os.environ.get('AUGUSTUS_CONFIG_PATH'))
+        """.format(os.environ.get('AUGUSTUS_CONFIG_PATH'))
         raise SystemError(error)
 
     if args.mode == 'trans' and shutil.which('transeq') is None:
