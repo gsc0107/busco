@@ -69,7 +69,7 @@ def _parser():
                         help='Number of threads/cores to use.')	 # Number of available threads
     # Four letter abbreviation for use with genome assembly
     parser.add_argument('-a', '--abrev',
-                        '-o', metavar='output',
+                        '-o', metavar='output', required=True,
                         type=str, help='How to name output and temporary files.')
     parser.add_argument('--ev', '-e', '-ev', metavar='N',
                         type=to_evalue,
@@ -193,17 +193,17 @@ def check_args(args):
     """
 
     args.mainout = os.path.abspath(
-        os.path.join(".", "run_{0}".format(args["abrev"]))
+        os.path.join(".", "run_{0}".format(args.abrev))
     )
 
-    if os.path.exists(args.mainout) is False and args['abrev'] is not None:
+    if os.path.exists(args.mainout) is False and args.abrev is not None:
         os.makedirs(args.mainout)
         # os.system('mkdir %s' % args.mainout)
     else:
-        if args['force'] is False:
+        if args.force is False:
             print('''A run with that name already exists!
-            If are sure you wish to rewrite existing files please use the -f option''')
-            raise SystemExit
+If are sure you wish to rewrite existing files please use the -f option''')
+            raise SystemExit(0)
         else:
             os.removedirs(args.mainout)
             os.makedirs(args.mainout)
@@ -216,21 +216,20 @@ def check_args(args):
                         'bacteria': 107114,
                         'eukaryota': 41317}
     args.maxflank = 20000
-    # print(args['clade'])
-    try:
-        if args.clade is not None:
-            # clade = args['clade']
-            args.clade_name = args.clade.strip('/').split('/')[-1].lower()
-            if args.clade_name in valid_clade_info:
-                args.Z = valid_clade_info[args.clade_name]
-            else:
-                print('Using custom lineage data...')
-                try:
-                    args.Z = args['dbsize']
-                except:
-                    error = 'Please indicate the size of the custom HMM database'
-                    raise SystemExit(error)
-    except:
+    # print(args.clade)
+    if args.clade is not None:
+        # clade = args.clade
+        args.clade_name = args.clade.strip('/').split('/')[-1].lower()
+        if args.clade_name in valid_clade_info:
+            args.Z = valid_clade_info[args.clade_name]
+        else:
+            print('Using custom lineage data...')
+            try:
+                args.Z = args.dbsize
+            except:
+                error = 'Please indicate the size of the custom HMM database'
+                raise SystemExit(error)
+    else:
         err_msg = """Please indicate the full path to a BUSCO clade:
     Eukaryota,
     Metazoa,

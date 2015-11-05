@@ -211,7 +211,7 @@ def do_hmmer_step4(args, transdic):
                            "{group_file}.hmm".format(
                                group_file=os.path.join(args.clade, "hmms", name)),
                            "{input_file}".format(
-                               input_file=args['genome'])
+                               input_file=args.genome)
                            ]
                 command = " ".join(str(_) for _ in command)
                 subprocess.call(command, shell=True)
@@ -230,7 +230,7 @@ def do_hmmer_step4(args, transdic):
             except (KeyError, IndexError, TypeError):
                 pass
         # totalbuscos = len(list(score_dic.keys()))
-        f = open('coordinates_%s' % args['abrev'])
+        f = open('coordinates_%s' % args.abrev)
         dic = {}
         for i in f:
             i = i.strip().split('\t')

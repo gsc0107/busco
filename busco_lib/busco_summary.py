@@ -28,7 +28,7 @@ def summarise(args, genome_dic, totalbuscos, mcc, cc, fcc, unique, score_dic, co
     """
 
     # summarize results, print and write to output files
-    summary = open('short_summary_'+args['abrev'], 'w')
+    summary = open('short_summary_'+args.abrev, 'w')
     if args.mode == 'OGS':
         print('Total complete BUSCOs found in assembly (<2 sigma) :  {0}\t({1} duplicated).'.format(
               len(set(cc))+len(set(mcc)),
@@ -51,7 +51,7 @@ def summarise(args, genome_dic, totalbuscos, mcc, cc, fcc, unique, score_dic, co
     except (TypeError, ValueError):
         print('Total BUSCOs not found:  {0}'.format(totalbuscos-(len(set(cc)) + len(fcc))))
 
-    summary.write('# Summarized BUSCO benchmarking for file: {0}\n'.format(args["genome"]))
+    summary.write('# Summarized BUSCO benchmarking for file: {0}\n'.format(args.genome))
     summary.write('#BUSCO was run in mode: {0}\n\n'.format(args.mode))
     if args.mode != 'OGS' and args.mode != 'trans':
         summary.write('Summarized benchmarks in BUSCO notation:\n')
@@ -104,7 +104,7 @@ def summarise(args, genome_dic, totalbuscos, mcc, cc, fcc, unique, score_dic, co
     
     summary.write('\t{0}\tTotal BUSCO groups searched\n'.format(totalbuscos))
     summary.close()
-    summary = open('full_table_%s' % args['abrev'], 'w')
+    summary = open('full_table_%s' % args.abrev, 'w')
     # write correct header
     if args.mode == 'genome' or args.mode == 'report':
         summary.write('# BUSCO_group\tStatus\tScaffold\tStart\tEnd\tBitscore\tLength\n')
@@ -223,7 +223,7 @@ def summarise(args, genome_dic, totalbuscos, mcc, cc, fcc, unique, score_dic, co
         f.close()
     summary.close()
 
-    f = open('full_table_%s' % args['abrev'], 'r')
+    f = open('full_table_%s' % args.abrev, 'r')
     lista = []
     for i in f:
         i = i.strip().split()
@@ -232,8 +232,8 @@ def summarise(args, genome_dic, totalbuscos, mcc, cc, fcc, unique, score_dic, co
     f.close()
 
     # get final list of missing buscos
-    out = open('missing_buscos_list_{0}'.format(args['abrev']), 'w')
-    f = open('full_table_{0}'.format(args['abrev']), 'a')
+    out = open('missing_buscos_list_{0}'.format(args.abrev), 'w')
+    f = open('full_table_{0}'.format(args.abrev), 'a')
     for i in score_dic.keys():
         if i in lista:
             pass

@@ -63,7 +63,7 @@ def do_genome_blast(args, flank):
     """
 
     print('*** Getting coordinates for candidate regions! ***')
-    tblast_file = open('%s_tblastn' % args['abrev'])  # open input file
+    tblast_file = open('%s_tblastn' % args.abrev)  # open input file
     dic = {}
     coords = {}
     for tblast_line in tblast_file:
@@ -147,7 +147,7 @@ def do_transcriptome_blast(args):
     """
 
     print('*** Getting coordinates for candidate transcripts! ***')
-    f = open('%s_tblastn' % args['abrev'])  # open input file
+    f = open('%s_tblastn' % args.abrev)  # open input file
     # transdic = None
 
     dic = {}
@@ -178,7 +178,7 @@ def do_transcriptome_blast(args):
             if scaff not in scaff_list:
                 scaff_list.append(scaff)
     print('*** Extracting candidate transcripts! ***')
-    f = open(args['genome'])
+    f = open(args.genome)
     check = 0
     out = None
     for i in f:
@@ -186,7 +186,7 @@ def do_transcriptome_blast(args):
             i = i.strip().split()
             i = i[0][1:]
             if i in scaff_list:
-                out = open('%s%s_.temp' % (i, args['abrev']), 'w')
+                out = open('%s%s_.temp' % (i, args.abrev), 'w')
                 out.write('>%s\n' % i)
                 check = 1
             else:
@@ -201,7 +201,7 @@ def do_transcriptome_blast(args):
     files = os.listdir('.')
     lista = []
     for entry in files:
-        if entry.endswith(args['abrev']+'_.temp'):
+        if entry.endswith(args.abrev+'_.temp'):
             lista.append(entry)
 
     print('Translating candidate transcripts !')
@@ -209,7 +209,7 @@ def do_transcriptome_blast(args):
         command = ["transeq", "-clean", "-frame", "6",
                    "-trim", "-sequence", entry,
                    "-outseq",
-                   "{}.fas".format(args.mainout+'translated_proteins/'+entry.split(args['abrev'])[0]+'_ts')]
+                   "{}.fas".format(args.mainout+'translated_proteins/'+entry.split(args.abrev)[0]+'_ts')]
         subprocess.call(command, shell=False)
     f2 = open('%s/scores_cutoff' % args.clade)  # open target scores file
     # Load dictionary of HMM expected scores and full list of groups
@@ -235,10 +235,10 @@ def do_blast_step(args, flank):
 
     print('*** Running tBlastN ***')
     subprocess.call(["makeblastdb", "-in", args.genome,
-                     "-dbtype", "nucl", "-out", args["abrev"]], shell=False)
+                     "-dbtype", "nucl", "-out", args.abrev], shell=False)
     subprocess.call(["tblastn", "-num_threads", str(args.cpus),
                      "-query", "{0}/ancestral".format(args.clade),
-                     "-db", args["abrev"], "-out", "{0}_tblastn".format(args.abrev),
+                     "-db", args.abrev, "-out", "{0}_tblastn".format(args.abrev),
                      "-outfmt", "7"], shell=True)
 
     transdic = None

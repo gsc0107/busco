@@ -58,7 +58,7 @@ def retraining(args, totalbuscos, genome_dic, score_dic):
         if os.path.exists(os.path.join(args.mainout, 'gb')) is False:
             os.makedirs(os.path.join(args.mainout, 'gb'))
     
-        f = open('full_table_%s'.format(args['abrev']))
+        f = open('full_table_%s'.format(args.abrev))
         lista = []
         re_run = []
         chosen = []
@@ -105,45 +105,45 @@ def retraining(args, totalbuscos, genome_dic, score_dic):
             f = open(os.path.join(args.mainout, 'gffs', entry))
             subprocess.call(
                 [os.path.join(os.environ["AUGUSTUS_CONFIG_PATH"], "..", "scripts", "gff2gbSmallDNA.pl"),
-                 f.name, args["genome"], "1000",
+                 f.name, args.genome, "1000",
                  os.path.join(args.mainout, "gb", "{0}.raw.gb".format(entry[:-4]))
                  ], shell=False)
             # os.system('$AUGUSTUS_CONFIG_PATH/../scripts/gff2gbSmallDNA.pl %s/gffs/%s %s 1000 %s/gb/%s.raw.gb' %
-            #           (args.mainout,entry,args['genome'],args.mainout,entry[:-4]))
+            #           (args.mainout,entry,args.genome,args.mainout,entry[:-4]))
     
             print('Training augustus gene predictor')
             # create new species config file from template
             subprocess.call(
                 [os.path.join(os.environ["AUGUSTUS_CONFIG_PATH"],
                               "..", "scripts", "new_species.pl"),
-                 "--species={0}".format(args["abrev"])],
+                 "--species={0}".format(args.abrev)],
                 shell=False)
             # Create training set by catting files
-            with open("training_set_{0}".format(args['abrev']), 'w') as gb_out:
+            with open("training_set_{0}".format(args.abrev), 'w') as gb_out:
                 for gb_name in iter(_ for _ in os.listdir(os.path.join(args.mainout, "gb")) if _.endswith(".gb")):
                     with open(gb_name, "rb") as gb_file:
                         shutil.copyfileobj(gb_file, gb_out)
     
             # Do training .. without optimisation
-            subprocess.call(["etraining", "--species={0}".format(args["abrev"]),
-                             "training_set_{0}".format(args['abrev'])], shell=False)
+            subprocess.call(["etraining", "--species={0}".format(args.abrev),
+                             "training_set_{0}".format(args.abrev)], shell=False)
     
         # train on new training set (complete single copy buscos)
-        if args['long']:
+        if args.long:
             print('Optimizing augustus metaparameters, this may take around 20 hours')
             subprocess.call([
                 os.path.join(os.environ["AUGUSTUS_CONFIG_PATH"], "..",
                              "scripts", "optimize_augustus.pl"),
-                "--species={0}".format(args["abrev"]),
-                "training_set_{0}".format(args['abrev'])], shell=False)
+                "--species={0}".format(args.abrev),
+                "training_set_{0}".format(args.abrev)], shell=False)
             subprocess.call([
                 "etraining",
-                "--species={0}".format(args["abrev"]),
-                "training_set_{0}".format(args['abrev'])], shell=False)
+                "--species={0}".format(args.abrev),
+                "training_set_{0}".format(args.abrev)], shell=False)
     
         print('*** Re-running failed predictions with different constraints, total number {0} ***'.format(
               len(re_run)))
-        target_species = args['abrev']
+        target_species = args.abrev
         strings = []
         hammers = []
         seds = []
@@ -202,7 +202,7 @@ def retraining(args, totalbuscos, genome_dic, score_dic):
                                "--predictionStart={0}".format(entry[1]),
                                "--predictionEnd={0}", format(entry[2]),
                                "--species={0}".format(target_species),
-                               "\"{0}\"".format(entry[0]+args['abrev']+'_.temp'),
+                               "\"{0}\"".format(entry[0]+args.abrev+'_.temp'),
                                ">",
                                "{output}".format(
                                    output=os.path.join(args.mainout, "augustus", "{0}.out".format(item))),
@@ -270,43 +270,43 @@ def retraining(args, totalbuscos, genome_dic, score_dic):
     # clean up temporary files
     if args.mode != 'OGS':
         for filename in iter(fileno for fileno in os.listdir(".") if
-                             (fileno.endswith("{0}_.temp".format(args["abrev"])) or
-                              fileno.endswith("{0}.nsq".format(args["abrev"])) or
-                              fileno.endswith("{0}.nin".format(args["abrev"])) or
-                              fileno.endswith("{0}.nhr".format(args["abrev"]))
+                             (fileno.endswith("{0}_.temp".format(args.abrev)) or
+                              fileno.endswith("{0}.nsq".format(args.abrev)) or
+                              fileno.endswith("{0}.nin".format(args.abrev)) or
+                              fileno.endswith("{0}.nhr".format(args.abrev))
                               )):
             os.remove(filename)
     
-        shutil.move("{0}_tblastn".format(args["abrev"]),
-                    "run_{0}".format(args["abrev"]))
-        shutil.move("short_summary_{0}".format(args["abrev"]),
-                    "run_{0}".format(args["abrev"]))
+        shutil.move("{0}_tblastn".format(args.abrev),
+                    "run_{0}".format(args.abrev))
+        shutil.move("short_summary_{0}".format(args.abrev),
+                    "run_{0}".format(args.abrev))
     
-        # os.system('rm *%s_.temp' % args['abrev'])
-        # os.system('rm %s.nsq %s.nin %s.nhr'  % (args['abrev'],args['abrev'],args['abrev']))
-        # os.system('mv %s_tblastn run_%s' % (args['abrev'],args['abrev']))
-        # os.system('mv short_summary_%s run_%s' % (args['abrev'],args['abrev']))
+        # os.system('rm *%s_.temp' % args.abrev)
+        # os.system('rm %s.nsq %s.nin %s.nhr'  % (args.abrev'],args['abrev'],args['abrev))
+        # os.system('mv %s_tblastn run_%s' % (args.abrev'],args['abrev))
+        # os.system('mv short_summary_%s run_%s' % (args.abrev'],args['abrev))
         if args.mode != 'trans':
-            shutil.move("coordinates_{0}".format(args["abrev"]),
-                        "run_{0}".format(args["abrev"]))
-            # os.system('mv coordinates_%s run_%s' % (args['abrev'],args['abrev']))
-        shutil.move("missing_buscos_list_{0}".format(args["abrev"]),
-                    "run_{0}".format(args["abrev"]))
-        shutil.move("full_table_{0}".format(args["abrev"]),
-                    "run_{0}".format(args["abrev"]))
+            shutil.move("coordinates_{0}".format(args.abrev),
+                        "run_{0}".format(args.abrev))
+            # os.system('mv coordinates_%s run_%s' % (args.abrev'],args['abrev))
+        shutil.move("missing_buscos_list_{0}".format(args.abrev),
+                    "run_{0}".format(args.abrev))
+        shutil.move("full_table_{0}".format(args.abrev),
+                    "run_{0}".format(args.abrev))
     
-        # os.system('mv full_table_%s run_%s' % (args['abrev'],args['abrev']))
+        # os.system('mv full_table_%s run_%s' % (args.abrev'],args['abrev))
     else:
-        shutil.move("missing_buscos_list_{0}".format(args["abrev"]),
-                    "run_{0}".format(args["abrev"]))
-        shutil.move("full_table_{0}".format(args["abrev"]),
-                    "run_{0}".format(args["abrev"]))
-        shutil.move("short_summary_%s".format(args["abrev"]),
-                    "run_{0}".format(args["abrev"]))
+        shutil.move("missing_buscos_list_{0}".format(args.abrev),
+                    "run_{0}".format(args.abrev))
+        shutil.move("full_table_{0}".format(args.abrev),
+                    "run_{0}".format(args.abrev))
+        shutil.move("short_summary_%s".format(args.abrev),
+                    "run_{0}".format(args.abrev))
     
-        # os.system('mv missing_buscos_list_%s run_%s' % (args['abrev'],args['abrev']))
-        # os.system('mv full_table_%s run_%s' % (args['abrev'],args['abrev']))
-        # os.system('mv short_summary_%s run_%s' % (args['abrev'],args['abrev']))
+        # os.system('mv missing_buscos_list_%s run_%s' % (args.abrev'],args['abrev))
+        # os.system('mv full_table_%s run_%s' % (args.abrev'],args['abrev))
+        # os.system('mv short_summary_%s run_%s' % (args.abrev'],args['abrev))
     # Report run time per step
     print('Total running time:  ', time.time() - start_time, "seconds")
     
@@ -392,7 +392,7 @@ def retraining(args, totalbuscos, genome_dic, score_dic):
                 fcc += 1
     
         # summarize results, print and write to output files
-        summary = open('short_summary_'+args['abrev'], 'w')
+        summary = open('short_summary_'+args.abrev, 'w')
         print('Total complete BUSCOs found in assembly (<2 sigma) :  {0}\t({1} duplicated).'.format(
               len(set(unique)), len(mcc)))
         print('Total BUSCOs partially recovered (>2 sigma) :  {0}'.format(fcc))
@@ -405,7 +405,7 @@ def retraining(args, totalbuscos, genome_dic, score_dic):
             print('Total BUSCOs not found:  %s'.format(
                 totalbuscos - (len(set(cc)) + len(fcc))))
     
-        summary.write('# Summarized BUSCO benchmarking for file: %s\n' % args['genome'])
+        summary.write('# Summarized BUSCO benchmarking for file: %s\n' % args.genome)
         summary.write('#BUSCO was run in args.mode: %s\n\n' % args.mode)
         summary.write('Summarized benchmarks in BUSCO notation:\n')
         summary.write('\tC:%s%%[D:%s%%],F:%s%%,M:%s%%,n:%s\n\n' % (shrink(len(set(cc))/totalbuscos),
@@ -422,7 +422,7 @@ def retraining(args, totalbuscos, genome_dic, score_dic):
     
         summary.write('\t%s\tTotal BUSCO groups searched\n' % totalbuscos)
         summary.close()
-        summary = open('full_table_' + args['abrev'], 'w')
+        summary = open('full_table_' + args.abrev, 'w')
         summary.write('# BUSCO_group\tStatus\tScaffold\tStart\tEnd\tBitscore\tLength\n')
     
         temp = os.listdir('%shmmer_output' % args.mainout)
@@ -494,8 +494,8 @@ def retraining(args, totalbuscos, genome_dic, score_dic):
             i = i.strip().split()
             if i[0] not in lista:
                 lista.append(i[0])
-        out = open('missing_buscos_list_%s' % args['abrev'], 'w')  # get final list of missing buscos
-        f = open('full_table_%s' % args['abrev'], 'a')
+        out = open('missing_buscos_list_%s' % args.abrev, 'w')  # get final list of missing buscos
+        f = open('full_table_%s' % args.abrev, 'a')
         for i in score_dic.keys():
             if i in lista:
                 pass
@@ -505,11 +505,11 @@ def retraining(args, totalbuscos, genome_dic, score_dic):
         out.close()
         f.close()
     
-        shutil.move('short_summary_{0}'.format(args['abrev']),
-                    'run_{0}'.format(args['abrev']))
-        shutil.move("missing_buscos_list_{0}".format(args['abrev']),
-                    'run_{0}'.format(args['abrev']))
-        shutil.move("full_table_{0}".format(args['abrev']),
-                    'run_{0}'.format(args['abrev']))
-        shutil.move("training_set_{0}".format(args['abrev']),
-                    'run_{0}'.format(args['abrev']))
+        shutil.move('short_summary_{0}'.format(args.abrev),
+                    'run_{0}'.format(args.abrev))
+        shutil.move("missing_buscos_list_{0}".format(args.abrev),
+                    'run_{0}'.format(args.abrev))
+        shutil.move("full_table_{0}".format(args.abrev),
+                    'run_{0}'.format(args.abrev))
+        shutil.move("training_set_{0}".format(args.abrev),
+                    'run_{0}'.format(args.abrev))

@@ -41,7 +41,7 @@ def do_augustus_step_3(args):
     if args.mode in ("genome", "augustus"):
         # target_species=species_list[0]
         print('*** pre-Augustus scaffold extraction ***')
-        coord = open('coordinates_%s' % args['abrev'])
+        coord = open('coordinates_%s' % args.abrev)
         dic = {}
         scaff_list = []
         for i in coord:
@@ -50,7 +50,7 @@ def do_augustus_step_3(args):
                 dic[i[0]] = [i[1], i[2], i[3]]
                 if i[1] not in scaff_list:
                     scaff_list.append(i[1])
-        f = open(args['genome'])
+        f = open(args.genome)
         check = 0
         out = None
         for i in f:
@@ -58,7 +58,7 @@ def do_augustus_step_3(args):
                 i = i.split()
                 i = i[0][1:]
                 if i in scaff_list:
-                    out = open('%s%s_.temp' % (i, args['abrev']), 'w')
+                    out = open('%s%s_.temp' % (i, args.abrev), 'w')
                     out.write('>%s\n' % i)
                     check = 1
                 else:
@@ -77,7 +77,7 @@ def do_augustus_step_3(args):
         if os.path.exists('{}augustus'.format(args.mainout)) is False:
             os.makedirs("{}augustus".format(args.mainout))
 
-        f = open('coordinates_%s' % args['abrev'])
+        f = open('coordinates_%s' % args.abrev)
         dic = {}
         for i in f:
             i = i.strip().split('\t')
@@ -97,7 +97,7 @@ def do_augustus_step_3(args):
                                "--predictionStart={0}".format(dic[i][z][1]),
                                "--predictionEnd={0}".format(dic[i][z][2]),
                                "--species={species}".format(species=args.target_species),
-                               "\"{scaffold}\"".format(scaffold=dic[i][z][0] + args['abrev'] + '_.temp'),
+                               "\"{scaffold}\"".format(scaffold=dic[i][z][0] + args.abrev + '_.temp'),
                                ">",
                                "{output}".format(output=args.mainout+'augustus/'+i+'.out.'+str(z+1)),
                                "2>/dev/null"
@@ -114,7 +114,7 @@ def do_augustus_step_3(args):
                     "--predictionEnd={end_coord}".format(end_coord=dic[i][0][2]),
                     "--species={species}".format(species=args.target_species),
                     "\"{scaffold}\" > {output} 2>/dev/null".format(
-                        scaffold=dic[i][0][0]+args['abrev']+'_.temp')
+                        scaffold=dic[i][0][0]+args.abrev+'_.temp')
                 ]
                 command = " ".join(command)
                 strings.append(command)
